@@ -1,4 +1,5 @@
 <?php
+ session_start(); 
 $errMessages = "";
 $valid = 1;
 
@@ -16,15 +17,14 @@ $valid = 1;
    $allowTypes = array('pdf', 'doc', 'docx', 'jpg', 'png', 'jpeg');
 
 if (isset($_POST['title']) || isset($_POST['firstName']) || isset($_POST['middleName']) || isset($_POST['lastName'])|| isset($_POST['job'])
-|| isset($_POST['email'])|| isset($_POST['MDA']) || isset($_POST['job']) || isset($_POST['issues'])
-|| isset($_POST['description'])|| isset($_POST['files'])|| isset($_POST['priority'])|| isset($_POST['entry_date'])
- ){
+|| isset($_POST['email'])|| isset($_POST['MDA']) || isset($_POST['job']) || isset($_POST['issues']) 
+|| isset($_POST['description'])|| isset($_POST['files'])|| isset($_POST['entry_date'])|| isset($_POST['selectTicketCat']) ){
 
     
     
 
          //now we validate data from javascript lastName
- function test_input($data) {
+ function test_input($data) { 
     $data = trim($data);
     $data = stripslashes($data);
     $data = htmlspecialchars($data);
@@ -40,15 +40,17 @@ if (isset($_POST['title']) || isset($_POST['firstName']) || isset($_POST['middle
     $job_title = test_input($_POST['job']);
     $MDA =  test_input($_POST['MDA']);
     $issues =  test_input($_POST['issues']);
+    $selectTicketCat =  test_input($_POST['selectTicketCat']);
     //$hidden_issues_section =  test_input($_POST['hidden_issues_section']);
     $description =  test_input($_POST['description']);
+   // $units = test_input($_POST['units']);
     $file =  $_FILES["files"];
-    $priority =  test_input($_POST['priority']);
+    //$priority =  test_input($_POST['priority']);
     $entry_date =  test_input($_POST['entry_date']);
     $actionOnTicket = test_input("Opened");
     $ticketStatus = test_input("Pending");
     $timeOfIssue = time();  
-  
+    $fullNames = $firstName .' '.$middleName.' '.$lastName;
 
     if (empty( $personalityTitle)){
         $valid = 0;
@@ -61,11 +63,7 @@ if (isset($_POST['title']) || isset($_POST['firstName']) || isset($_POST['middle
        $errMessages .= "<br> Please Enter Your First Name!";
        //return false;
    }//end of if empty
-   else if (empty( $middleName)){
-       $valid = 0;
-       $errMessages .= "<br> Please Enter Your Middle Name!";
-       //return false;
-   }//end of if empty
+
    else if (empty( $lastName)){
        $valid = 0;
        $errMessages .= "<br> Please Enter Your Last Name!";
@@ -81,20 +79,11 @@ if (isset($_POST['title']) || isset($_POST['firstName']) || isset($_POST['middle
        $errMessages .= "<br> Please Enter Your Ministry, Department and Agency!";
       // return false;
    }//end of if empty
-   else if (empty( $issues)){
-       $valid = 0;
-       $errMessages .= "<br> Please Select An Issues To Address!";
-      // return false;
-   }//end of if empty
+
    else if (empty( $description)){
        $valid = 0;
        $errMessages .= "<br> Please Enter Your Description!";
       // return false;
-   }//end of if empty
-   else if (empty( $priority)){
-       $valid = 0;
-       $errMessages .= "<br> Select A Priority Level For This Ticket!";
-       //return false;
    }//end of if empty
    else if (empty( $entry_date)){
        $valid = 0;
@@ -173,20 +162,95 @@ else{
             //here we use validate function to trim the file
 
             $uploadFileStr = trim($uploadedFile, ',');
+             $ticketCreatedBy = $_SESSION['email'];
 
                //here we insert into the database table of all posted data using prepared stmt
- $stmt = $conn->prepare("INSERT INTO ticket_details (title,firstName,middle_name,lastName,staff_email,job_title,
- ticket_status,MDAs,ticket_no,complaints,comments,files,priorityLevel,date_issued,timeOfIssue,actionOnTickets) 
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");;;;;;;
-     $stmt->bind_param("ssssssssssssssss", $personalityTitle, $firstName, $middleName, $lastName,$email,
-     $job_title,$ticketStatus,$MDA,$generateRandomNum,$issues,$description, $uploadFileStr, $priority,
+ $stmt = $conn->prepare("INSERT INTO ticket_details (title,fullNames,firstName,middle_name,lastName,staff_email,job_title,
+ ticket_status,MDAs,ticket_no,ticketCreatedBy, ticketCat, complaints,comments,files,date_issued,timeOfIssue,actionOnTickets) 
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+     $stmt->bind_param("ssssssssssssssssss", $personalityTitle, $fullNames, $firstName, $middleName, $lastName, $email,
+     $job_title,$ticketStatus,$MDA,$generateRandomNum,$ticketCreatedBy, $selectTicketCat, $issues, $description, $uploadFileStr,
       $entry_date, $timeOfIssue, $actionOnTicket);
      $stmt->execute(); 
 
      if ($stmt){
+        
         $response['status'] = 1;
         $response['ticketNo'] = $generateRandomNum;
+
+         //send email
+   /*       $to = $email;
+         $subject = "TICKET NUMBER GENERATED";
+         $message = '<!DOCTYPE html>
+         <html>
+             <head>
+                 <title>ICTA|TICKET NUMBER</title>
+                 <style>
+                    body{
+                 background-color: hsl(218,41%,15%);
+                 background-image: radial-gradient(
+                   650px circle at 0% 0%,
+                 hsl(218, 41%, 35%) 15%,
+                 hsl(218, 41%, 30%) 35%,
+                 hsl(218, 41%, 20%) 75%,
+                 hsl(218, 41%, 19%) 80%,
+                 transparent 100%
+                 ),
+                 radial-gradient(
+                 1250px circle at 100% 100%,
+                 hsl(218, 41%, 35%) 15%,
+                 hsl(218, 41%, 30%) 35%,
+                 hsl(218, 41%, 20%) 75%,
+                 hsl(218, 41%, 19%) 80%,
+                 transparent 100%
+         
+                 );
+                 height:100vh;
+                 color:whitesmoke;
+                 font-family: open sans;
+               }
+         
+               div{
+                 margin: 200px auto;
+                 text-align: center;
+               }
+                 </style>
+             </head>
+             <body>
+                         <div>
+                              <p> Dear <b>'.$lastName.'</b>, </p>
+                             <p>Thank You <b>'.$lastName.' '.$firstName.'</b> For Contacting ICTA Help Desk. </p>
+                            <p> <b>Please wait while we attend to the complaint!</b></p>
+                             <p>Your ticket Number is : '.$generateRandomNum.' </p>
+                             <p>Type of ticket: '.$selectTicketCat.' </p>
+                              <p>Reason for raising a ticket: '.$issues.' </p>
+                              <hr>
+                              <p>Ticket Discription: '.$description.' </p>
+                              <hr>
+                              <p>&copy; ICTA HELP DESK  Email:<b>helpdesk@edostate.gov.ng</b></p> 
+                         </div>
+         
+         
+             </body>
+         </html>'; 
+         $headers = "From: Icta-helpdesk@edostate.gov.ng \r\n";
+         $headers .= "MIME-Version: 1.0" . "\r\n";
+         $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
+         $headers .= 'Cc:helpdesk@edostate.gov.ng' . "\r\n";
+ 
+               $email_box = mail($to, $subject, $message, $headers);
+
+                 if ($email_box == true){
+
+                 }
+                 else{
+                    $response['message'] = "could not send mail!"; 
+                 } */ 
+ 
         $response['message'] = 'Form Data Successfully Submitted!';
+
+           
+
     }//end of if $stmt
 
                 }//end of if $uploadStatus == 1
@@ -194,7 +258,7 @@ else{
               else {
                 error_log('Could not create a statement:' . $conn->error);
                         $response['message'] = "Please, Fill All Mandatory Fields!".$errMessages;
-                      return false;  
+                      //return false;  
                 }// else for if ($uploadStatus == 1) 
 
                 //return response

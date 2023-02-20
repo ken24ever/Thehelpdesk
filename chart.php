@@ -21,6 +21,6 @@ include('includes/db_connect.php');
         'dates' => $getDates,
     );
     
-    echo json_encode($response);
+    echo json_encode($response); 
 
 ?>

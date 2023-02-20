@@ -3,7 +3,9 @@ $(document).ready(function(){
   getNoOfAction = () => {
                    // var ctx = document.getElementById("barChart")
   const ctx = document.getElementById("closedChart").getContext("2d")// added '.getContext("2d")'
-
+  const gradientFill = ctx.createLinearGradient(0, 0, 0, 290);
+  gradientFill.addColorStop(0, "hsla(110, 71%, 35%, 1)");
+  gradientFill.addColorStop(1, "hsla(110, 41%, 35%, 0.2)");
   $.ajax({
     type: "POST",
     url:"getNoOfAction.php",
@@ -13,14 +15,14 @@ $(document).ready(function(){
     processData: false, */
     success: function(NoOfActions){
  
- const myChart = new Chart(ctx, {
+ const myChart2 = new Chart(ctx, {
    type: "bar",
    data: {
      labels: NoOfActions.issues, /* ['doors','windows', 'electronics'], */  
      datasets: [
        {
-       label: "Tickets Closed Breakdown",
-       backgroundColor: [
+       label: "Tickets Closed Breakdown", 
+       backgroundColor: gradientFill /* [
            'rgba(255, 26, 104, 0.5)',
            'rgba(54, 162, 235, 0.5)',
            'rgba(255, 206, 86, 0.5)',
@@ -31,7 +33,7 @@ $(document).ready(function(){
            'rgba(104, 102, 34, 0.5)',
            'rgba(111, 89, 68, 0.5)',
            'rgba(244, 183, 50, 0.5)'
-         ], 
+         ] */, 
          
        borderWidth: 1,
        hoverBackgroundColor: "white",
@@ -84,36 +86,82 @@ $(document).ready(function(){
  }); 
 
 
- $(document).on('change', '#ActionClosed1,#ActionClosed2', function(){
-
+ $(document).on('change', '.chooseMda,#ActionClosed1,#ActionClosed2', function(){
+ 
   const ActionClosed1 = $('#ActionClosed1').val();
   const ActionClosed2 = $('#ActionClosed2').val();
+  const chooseMda = $('.chooseMda').val();
+
   //console.log(ActionClosed1, ActionClosed2)
   $.ajax({
 type: "post",
 url:"getDatesForClosedTickets.php",
-data: {ActionClosed1:ActionClosed1, ActionClosed2:ActionClosed2},
+data: {ActionClosed1:ActionClosed1, ActionClosed2:ActionClosed2, chooseMda:chooseMda},
 dataType:'json',
 cache:false,
 success: function(info){
- console.log(info.issuesUpdated1)
-  myChart.data.labels = info.issuesUpdated1;
-  myChart.data.datasets[0].data = info.occurenceUpdated1;
-  myChart.update(); 
+/*  console.log(info.issuesUpdated1) */
+  //alert messages if there were no records to display
+
+
+  console.log(info.occurenceUpdated1) 
+  
+  myChart2.data.labels = info.issuesUpdated1;
+  myChart2.data.datasets[0].data = info.occurenceUpdated1;
+  myChart2.update(); 
+
+
+ if(info.error != false){
+ 
+    function toasterOptions() {
+      toastr.options = {
+          "closeButton": false,
+          "debug": false,
+          "newestOnTop": false,
+          "progressBar": true,
+          "positionClass": "toast-top-right",
+          "preventDuplicates": true,
+          "onclick": null,
+          "showDuration": "3000",
+          "hideDuration": "3000",
+          "timeOut": "3000",
+          "extendedTimeOut": "3000",
+          "showEasing": "swing",
+          "hideEasing": "linear",
+          "showMethod": "show",
+          "hideMethod": "hide"
+      };
+  };
+  
+  
+  toasterOptions();
+       toastr.error(info.error, "ALERT! " )
+} 
+
   
 }//end of success
 
 })//end of ajax 
 
+
 })//end of document onChange event
 
+$(document).on('click', "#resetClosedChart", function(){
+
+  myChart2.data.labels = NoOfActions.issues;
+  myChart2.data.datasets[0].data = NoOfActions.occurence;
+  myChart2.update(); 
+  })
 
 }//end of success
 
   })// end of ajax
 
+
+
 }// end of getNoOfAction
 
 getNoOfAction()
+
  
 })// end of ready state

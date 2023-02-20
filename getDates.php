@@ -1,73 +1,43 @@
 <?php
-/*  $info = array (
-    'issuesUpdated' => '',
-    'occurenceUpdated' => '',
-    'datesUpdated' => '',
-);  */
 
-$errMsg = "";
 
-if (isset($_POST['startDate']) && isset($_POST['endDate']) ){
+if (isset($_POST['startDate']) || isset($_POST['endDate']) || isset($_POST['chooseMda1'])  ){
     $startDate = $_POST['startDate'];
     $endDate = $_POST['endDate'];
+    $chooseMda1 = $_POST['chooseMda1'];
     include('includes/db_connect.php');
     
-    $sql = "SELECT complaints, date_issued, COUNT(complaints) AS occurence  FROM ticket_details WHERE date_issued BETWEEN ? AND ? GROUP BY complaints";
-$stmt = $conn->prepare($sql); 
-$stmt->bind_param("ss", $startDate, $endDate);
-$stmt->execute();
-$result = $stmt->get_result();
+    $sql = "SELECT *, COUNT(complaints) AS openedData  FROM ticket_details WHERE actionOnTickets = 'Opened'  AND MDAs LIKE '%$chooseMda1%' AND date_issued BETWEEN '$startDate' AND '$endDate' GROUP BY complaints";
 
-/* while ($row = $result->fetch_assoc()) {
-    echo $row['name'];
-} */
-
-/* if (mysqli_num_rows($result < 1)){
-    $errMsg = "No Tickets Raised On This Date(s)!";  
-} */
+    $countRecresult = mysqli_query($conn, $sql);
 
 
+    $issues_raised = array();
+    $noOfOccurence = array();
+    $getDates = array();
 
-foreach($result as $record){
+    if (mysqli_num_rows($countRecresult) > 0) {
+        // Rows were returned by the query
+        while ($record = mysqli_fetch_assoc($countRecresult)) {
+            $issues_raised[] = $record['complaints'];
+            $noOfOccurence[] = $record['openedData'];
+            $getDates[] = $record['date_issued'];
+        }
 
-    $issues_raised [] = $record['complaints'];
-    $noOfOccurence [] = $record['occurence'];
-    $getDates [] = $record['date_issued'];
-
-}
-
-
-
-$info['issuesUpdated'] = $issues_raised ;
-$info['occurenceUpdated'] = $noOfOccurence ;
-$info['datesUpdated'] = $getDates ;
-//$info['message'] = $errMsg ;
-
-    
-/* 
-
-    $stmt = "SELECT * FROM ticket_details WHERE date_issued = ";
-    $query_stmt = mysqli_query($conn, $stmt);
-
-    // set up a foreach loop 
-    foreach($query_stmt as $records){
-
-          $issues_raised [] = $records['complaints'];
-          $noOfOccurence [] = $records['occurence'];
-          $getDates [] = $records['date_issued'];
-
+        $info['issuesUpdated'] = $issues_raised;
+        $info['occurenceUpdated'] = $noOfOccurence;
+        $info['datesUpdated'] = $getDates;
+    } else {
+        // No rows were returned by the query
+        $error = "No records found based on the specified criteria.";
+        $info['error'] = $error;
     }
 
+    mysqli_close($conn);
 
-    $response = array (
-        'issues' => $issues_raised ,
-        'occurence' => $noOfOccurence,
-        'dates' => $getDates,
-    );
-    
-    echo json_encode($response); */
+
 
 }//end of isset
-//echo $dates
+
 echo json_encode($info);
 ?>

@@ -1,7 +1,7 @@
 
     $(document).ready(function(){ 
       
-      $("#myForm").on('submit', function(e){
+      $("#myForm").on('submit', function(e){ 
   
         e.preventDefault()
   
@@ -13,12 +13,14 @@
                   const middleName = $("#middleName").val();
                   const job = $("#job").val();
                   const email = $("#email").val();
-                  const MDA = $("#MDA").val();
-                  const issues = $("#issues").val();
+                  const MDA = $(".MDA").val();
+                  const selectTicketCat = $("#selectTicketCat").val();
                   const files = $("#file").val();
                   const description = $("#description").val();
-                  const priority = $("#priority").val();
+                  const issues = $("#issues").val();
+                 // const priority = $("#priority").val();
                   const entry_date = $("#entry_date").val();
+                 // const units = $("#units").val();
                   
                /*    if (title == ""){
                      $('#title').css('borderColor','red')
@@ -28,6 +30,7 @@
                      $('#title,#firstName,#lastName,#job,#email,#issues,#description,#priority,#entry_date').css('borderColor','red')
                   } */
  
+                console.log()
                 
                      if (!email.match("@")){
                         // alert("Email Address Invalid.")
@@ -53,13 +56,13 @@
                       
                       
                       toasterOptions();
-                           toastr.warning( "Email Address Invalid", "Invalid Email!" )
+                           toastr.error( "Email Address Invalid", "Invalid Email!" )
                  
                      
                      }//end of if !email.match()
                      else{
  
-                          // creating an instance of the
+                          // creating an instance of the object
                   const formObj = new FormData(this);
   
                   //here we append all form fields
@@ -71,14 +74,16 @@
                   formObj.append('email', email);
                   formObj.append('MDA', MDA);
                   formObj.append('issues', issues);
+                  formObj.append('selectTicketCat', selectTicketCat);
                   formObj.append('files', files);
                   formObj.append('description', description);
-                  formObj.append('priority', priority);
+                 // formObj.append('priority', priority);
                   formObj.append('entry_date', entry_date);
+                  //formObj.append('units', units);
                 
           $.ajax({
           type: "POST",
-          url:"process_ticket.php",
+          url:"process_ticket.php", 
           data: formObj,
           dataType:'json',
           cache:false,
@@ -88,13 +93,15 @@
           
             $("#ticket").attr('disabled', 'disabled'); 
  
-            swal({
-                      title: '',
-                      html: '<img src="img/icta_logo.png"><br><br><strong style="color:green; font-family:italic; font-weight:900">Creating Ticket Shortly...</strong>',
-                      allowOutsideClick: true,
-                      timer:2000
-                     });
-                     swal.showLoading();
+                       Swal.fire({
+                        title: '',
+                        icon: 'info',
+                        html: '<img src="img/icta_logo.png" height="80" width="80"><br><br><strong>Creating Ticket Shortly...</strong>',
+                        allowOutsideClick: false,
+                        timer:2000
+                        });
+                       Swal.showLoading();
+               
           },
           success: function(response){
              
@@ -109,7 +116,7 @@
              'display':'block',
              'text-align':'center'
          });
-              $('.alert').html('Ticket Number Created Successfully: '+response.ticketNo+'. Please copy it for ticket tracking!');
+              $('.alert').html('Ticket Number Created Successfully: '+response.ticketNo+'. A Copy Of The Ticket Number Has Been Sent To Your Email!');
               function toasterOptions() {
                  toastr.options = {
                      "closeButton": false,
@@ -119,10 +126,10 @@
                      "positionClass": "toast-top-right",
                      "preventDuplicates": true,
                      "onclick": null,
-                     "showDuration": "100",
-                     "hideDuration": "1000",
-                     "timeOut": "5000",
-                     "extendedTimeOut": "1000",
+                     "showDuration": "3000",
+                     "hideDuration": "3000",
+                     "timeOut": "9000",
+                     "extendedTimeOut": "9000",
                      "showEasing": "swing",
                      "hideEasing": "linear",
                      "showMethod": "show",
@@ -159,7 +166,7 @@
              
              
              toasterOptions();
-                  toastr.warning( response.message, "ERROR DETECTED!" )
+                  toastr.error( response.message, "ERROR DETECTED!" )
         
           } 
   
@@ -177,7 +184,10 @@
       })//end of $("myForm")onSubmit
   
           // file type validation
-          var match = ['application/pdf', 'application/msword', 'application/vnd.ms-office', 'image/jpeg', 'image/png', 'image/jpg']       
+          var match = ['application/pdf', 'application/msword',
+           'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            'application/vnd.ms-powerpoint', 'application/zip', 'application/vnd.ms-excel', 'text/plain', 'application/zip', 'application/vnd.rar', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+             'image/jpeg', 'image/png', 'image/jpg']       
            $("#file").change(function(){
              for(i=0; i<this.files.length; i++){
                       var file = this.files[i];
@@ -185,7 +195,9 @@
              }
       
              if (!( (fileType == match[0]) || (fileType == match[1]) || (fileType == match[2]) || (fileType == match[3])
-             || (fileType == match[4]) || (fileType == match[5]) 
+             || (fileType == match[4]) || (fileType == match[5] || (fileType == match[6]) || (fileType == match[7]) || 
+             (fileType == match[8]) || (fileType == match[9]) || (fileType == match[10]) || (fileType == match[11]) ||
+              (fileType == match[12]) || (fileType == match[13]))
              )) {
               function toasterOptions() {
           toastr.options = {
@@ -220,23 +232,6 @@
   
   
   
-  //hide the sub-category of issues
-  const sub_cat = $(".hidMe").css('display', 'none');
-  
-        $(document).on('change', "#issues", function(){
-          const issues = $("#issues").val();
-          const hidden_issues_section = $("#hidden_issues_section").val();
-  
-  if (issues == "others") {
-    sub_cat.fadeIn("slow");
-    issues="others"
-    hidden_issues_section = "others"
-  }else if (issues != "OTHERS"){
-    $(".hidMe").fadeOut("slow");
-    //hidden_issues_section.val("");
-  }
-  
-  })
   
   
        })/* end of ready state */

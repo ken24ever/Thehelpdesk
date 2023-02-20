@@ -1,14 +1,14 @@
 
             
      
-    function loadTable (page) {
+    function loadTable (page) { 
         $.ajax({
                 type: "Post",
                 url: "table_display.php",
                 data: {page:page},
                 success:function(table_info){
 
-                    $(".ticket_records ").html(table_info);
+                    $(".ticket_records ").html(table_info); 
                    
                 }
 
@@ -27,18 +27,22 @@ loadTable(page)
 })//end of onclick event
 loadTable()
 
+
+//here we script for toggle edit/update of ticket button
 $(document).on("click", '.editButton', function (){
 
     /* alert(id) */
     
     Swal.fire({
-      title: 'Are you sure you want to close this ticket?',
-      html: "<h3 style='color:red;'>You won't be able to reverse this if you proceed!</h3>",
-      type: 'warning',
+      title: 'Are you sure you want to take action on this ticket?',
+      html: '<img src="img/icta_logo.png" height="50" width="50">',
+      icon: 'question',
       showCancelButton: true,
       confirmButtonColor: 'darkGreen',
       cancelButtonColor: 'darkRed',
-      confirmButtonText: 'Yes, Close ticket!',  
+      confirmButtonText: 'Yes, Update ticket!', 
+      showLoaderOnConfirm:true,
+      
     }).then((result) => {
       if (result.value) {
         var ticketNo = $(this).attr("id");
@@ -47,20 +51,12 @@ $(document).on("click", '.editButton', function (){
         //alert(ticketNo)
          $.ajax({
                 method: 'post',
-                beforeSend: function(){
-                  swal.fire({
-                    title: '',
-                    html: '<strong style="color:green">Closing Ticket...</strong>',
-                    allowOutsideClick: false,
-                   });
-                   swal.showLoading();
-                               },
                 url: 'updateTicket.php',
                 data: {ticketNo:ticketNo},
                 beforeSend:function(){
                   Swal.isLoading()
                 },
-                success: function(updatedData){
+                success: function(updatedData){  
                   Swal.fire(
                     'TICKET UPDATED!',
                      updatedData,
@@ -75,7 +71,7 @@ $(document).on("click", '.editButton', function (){
      
       }else{
     
-        swal("Cancelled", "No Action Was Taken! :)", "info");
+        Swal.fire("Cancelled", "No Action Was Taken! :)", "info");
       
       }
     

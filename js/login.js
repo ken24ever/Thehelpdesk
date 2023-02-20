@@ -8,10 +8,10 @@ $(document).ready(function(){
   
            if (email==" " || password==" "){
   
-            swal({
+            Swal.fire({
                 title: "Ooops!",
                 text: "Empty Fields Detected!",
-                type: "error",
+                icon: "error",
                 confirmButtonText:"Exit",
                  allowOutsideClick: false,
       timer: 3000
@@ -26,42 +26,41 @@ $(document).ready(function(){
         $.ajax({
             method:"POST",
             beforeSend: function(){
-              swal({
+              Swal.fire({
                 title: '',
                 html: '<img src="img/icta_logo.png" height="80" width="80"><br><br><strong>logging In Shortly...</strong>',
                 allowOutsideClick: false,
                });
-               swal.showLoading();
+               Swal.showLoading();
                            },
             data: {email:email, password:password},
             url: 'login.php',
-            /* dataType:'script',
-            cache:false,
-            contentType: false,
-            processData: false, */
+           
             success:function(data){ 
-                console.log(data)
+       
                 if (data == 1  ){
                     
-                    swal({
+                    Swal.fire({
                         text:"Authentication Success!" ,
-                        type: "success",
+                        icon: "success",
                         confirmButtonText:"Exit",
                          allowOutsideClick: false,
               timer: 3000
                         });
-                        window.location.href = "http://localhost/help_desk_app/dashboard.php";      
+
+                        
+                        window.location.href = "http://localhost/Thehelpdesk/dashboard.php";      
 
                 }else if (data == 0  ) {
-                    swal({
+                    Swal.fire({
                         text:"Authentication Failed!",
-                        type: "danger",
+                        icon: "error",
                         confirmButtonText:"Exit",
                          allowOutsideClick: false,
               timer: 3000
                         });
 
-                }
+                } 
             
                          
             }//end of success

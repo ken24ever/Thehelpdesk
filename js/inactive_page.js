@@ -1,4 +1,4 @@
-$(function(){
+$(document).ready(function(){
 
     function timeChecker(){
         setInterval(function(){
@@ -18,12 +18,12 @@ $(function(){
             sessionStorage.removeItem("lastTimeStamp") ;  
      
 
-            toastr.warning( "Page Has Been Inactive For Awhile, Logging Shoutly!", "INACTIVE" )
+            toastr.warning( "Page Has Been Inactive For Awhile, Logging Out Shortly!", "INACTIVE" )
 
         }// end of if
         else if ( minPast >= 2){
             sessionStorage.removeItem("lastTimeStamp") ;  
-            window.location = "http://localhost/help_desk_app/logout.php";
+            window.location = "http://localhost/Thehelpdesk/logout.php";
         } 
         else{
             console.log(currentTime +" - "+ pastTime+" - "+minPast+"min past");
